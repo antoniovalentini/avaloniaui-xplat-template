@@ -1,1 +1,1 @@
-﻿# Avalonia Template
+﻿# Avalonia XPlat Template

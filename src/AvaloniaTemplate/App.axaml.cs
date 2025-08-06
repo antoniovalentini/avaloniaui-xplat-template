@@ -25,7 +25,6 @@ public abstract class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    // These methods will be implemented in platform-specific projects
     protected abstract void RegisterPlatformServices(IServiceCollection services);
     protected abstract void PlatformConfiguration(ConfigurationBuilder builder);
     protected abstract string ReadResourceFile(string resourceName);
