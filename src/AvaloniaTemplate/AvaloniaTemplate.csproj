@@ -23,9 +23,6 @@
         <PackageReference Include="Microsoft.Extensions.Configuration" />
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="src\" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" />
     </ItemGroup>
 </Project>

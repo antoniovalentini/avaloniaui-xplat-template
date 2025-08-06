@@ -9,12 +9,16 @@ using AvaloniaTemplate.ViewModels;
 using AvaloniaTemplate.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace AvaloniaTemplate;
 
 public abstract class App : Application
 {
-    [SuppressMessage("ReSharper", "PublicConstructorInAbstractClass", Justification = "Warning AVLN3001 Avalonia: XAML resource \"App.axaml\" won't be reachable via runtime loader")]
+    [SuppressMessage(
+        "ReSharper",
+        "PublicConstructorInAbstractClass",
+        Justification = "Warning AVLN3001 Avalonia: XAML resource \"App.axaml\" won't be reachable via runtime loader")]
     public App() { }
 
     public static App Instance => (Current as App)!;
@@ -43,28 +47,40 @@ public abstract class App : Application
 
         var config = configBuilder.Build();
 
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        var services = new ServiceCollection();
+        services
+            .AddLogging(builder => builder.AddConsole())
+            .AddSingleton<MainViewModel>();
+
+        RegisterPlatformServices(services);
+
+        Services = services.BuildServiceProvider();
+
+        var viewModel = Services.GetRequiredService<MainViewModel>();
+
+        switch (ApplicationLifetime)
         {
-            // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
-            // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
-            DisableAvaloniaDataAnnotationValidation();
-            desktop.MainWindow = new MainWindow
-            {
-                DataContext = new MainViewModel()
-            };
-        }
-        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-        {
-            singleViewPlatform.MainView = new MainView
-            {
-                DataContext = new MainViewModel()
-            };
+            case IClassicDesktopStyleApplicationLifetime desktop:
+                // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
+                // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
+                DisableAvaloniaDataAnnotationValidation();
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = viewModel,
+                };
+                break;
+            case ISingleViewApplicationLifetime singleViewPlatform:
+                singleViewPlatform.MainView = new MainView
+                {
+                    DataContext = viewModel,
+                };
+                break;
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    private void DisableAvaloniaDataAnnotationValidation()
+    private static void DisableAvaloniaDataAnnotationValidation()
     {
         // Get an array of plugins to remove
         var dataValidationPluginsToRemove =
